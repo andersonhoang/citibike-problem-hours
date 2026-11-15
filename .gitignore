@@ -1,0 +1,11 @@
+# Raw Citi Bike data: licensed, must never be committed or shared
+data_raw/
+2025-Aug-Sep-Oct-citibike-tripdata/
+*.zip
+*.csv
+
+# Python and editor files
+__pycache__/
+*.pyc
+.venv/
+.vscode/
