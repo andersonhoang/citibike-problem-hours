@@ -4,6 +4,9 @@ data_raw/
 *.zip
 *.csv
 
+# Exception agreed by the team: the aggregated station-hour table (not trip records)
+!data_processed/*.csv
+
 # Python and editor files
 __pycache__/
 *.pyc
