@@ -7,6 +7,11 @@ data_raw/
 # Exception agreed by the team: the aggregated station-hour table (not trip records)
 !data_processed/*.csv
 
+# Personal handoff note: never commit
+HANDOFF.md
+StatActionLog.txt
+local_settings.py
+
 # Python and editor files
 __pycache__/
 *.pyc

@@ -15,7 +15,7 @@ import sys                                          # reads the command-line wor
 from datetime import date, datetime                 # calendar dates and date-times
 from pathlib import Path                            # file paths
 import polars as pl                                 # table library
-from get_data import DATA_DIR, clean, list_trip_csvs, scan_csv   # reuse the functions from get_data.py
+from get_data import DATA_DIR, clean, has_real_id, list_trip_csvs, scan_csv   # reuse the functions from get_data.py
 
 # Step 2: settings.
 TRAIN_FIRST = date(2025, 9, 1)     # training weeks 1 to 5
@@ -64,10 +64,15 @@ def hourly_counts(trips):
 def pick_top_stations(trips):
     """Choose the busiest stations using the training weeks only."""
     # One row per trip start and one row per trip end, each with its station and day.
-    events = pl.concat([
-        trips.select(pl.col("start_station_id").alias("station_id"), pl.col("started_at").dt.date().alias("day")),
-        trips.select(pl.col("end_station_id").alias("station_id"), pl.col("ended_at").dt.date().alias("day")),
-    ]).filter(pl.col("day").is_between(TRAIN_FIRST, TRAIN_LAST))
+    events = (
+        pl.concat([
+            trips.select(pl.col("start_station_id").alias("station_id"), pl.col("started_at").dt.date().alias("day")),
+            trips.select(pl.col("end_station_id").alias("station_id"), pl.col("ended_at").dt.date().alias("day")),
+        ])
+        # A blank station ID is not a station. Drop those rows first, or the blank group can rank in the top 300.
+        .filter(has_real_id("station_id"))
+        .filter(pl.col("day").is_between(TRAIN_FIRST, TRAIN_LAST))
+    )
 
     # For each station: total trip volume (starts plus ends) and how many training days it was active.
     stats = events.group_by("station_id").agg(
@@ -107,7 +112,9 @@ def build_table(top, flows, trips):
         .with_columns(pl.col("departures", "arrivals").fill_null(0))
         .join(names, on="station_id", how="left")
         .with_columns(
-            (pl.col("arrivals") - pl.col("departures")).alias("net_flow"),   # net flow = arrivals minus departures
+            # Net flow = arrivals minus departures. Counts are unsigned in polars, so cast to a signed type first,
+            # or a negative result wraps around to a huge positive number (found 16 Nov 2026).
+            (pl.col("arrivals").cast(pl.Int64) - pl.col("departures").cast(pl.Int64)).alias("net_flow"),
             pl.col("hour_start").dt.date().alias("date"),
             pl.col("hour_start").dt.hour().alias("hour"),
         )
@@ -136,7 +143,24 @@ def check_table(table, top, trips):
         .item()
     )
     assert table_arrivals == direct_arrivals, f"arrivals {table_arrivals:,} != trips {direct_arrivals:,}"
-    print(f"Checks passed: {rows:,} rows, {table_arrivals:,} arrivals.")
+    # Check 3: no blank station IDs in the table, and exactly TOP_N distinct stations.
+    blank_rows = table.filter(~has_real_id("station_id")).select(pl.len()).collect().item()
+    assert blank_rows == 0, f"{blank_rows:,} table rows have a blank station ID"
+    distinct = table.select(pl.col("station_id").n_unique()).collect().item()
+    assert distinct == TOP_N, f"expected {TOP_N} distinct stations, got {distinct}"
+
+    # Check 4: no blank IDs among the chosen stations.
+    blank_top = top.filter(~has_real_id("station_id")).select(pl.len()).collect().item()
+    assert blank_top == 0, f"{blank_top} chosen stations have a blank ID"
+
+    # Check 5: net flow is arrivals minus departures on every row. A wrapped-around value fails here.
+    wrong_net = table.filter(
+        pl.col("net_flow").cast(pl.Int64)
+        != pl.col("arrivals").cast(pl.Int64) - pl.col("departures").cast(pl.Int64)
+    ).select(pl.len()).collect().item()
+    assert wrong_net == 0, f"{wrong_net:,} rows have a wrong net_flow"
+
+    print(f"Checks passed: {rows:,} rows, {table_arrivals:,} arrivals, {distinct} stations.")
 
 
 def run_self_test():
@@ -162,7 +186,20 @@ def run_self_test():
     assert value("B", datetime(2025, 9, 1, 8), "arrivals") == 1, "B should arrive once at 08:00"
     assert value("A", datetime(2025, 8, 31, 23), "departures") == 1, "A should depart once at 23:00 on 31 Aug"
     assert value("B", datetime(2025, 9, 1, 0), "arrivals") == 1, "B should arrive once at 00:00 on 1 Sep"
+    # Known answer: a trip with a blank start station ID is dropped, so it cannot be picked as a station.
+    rows_blank = [
+        "start_station_id,start_station_name,end_station_id,end_station_name,started_at,ended_at",
+        "A,Alpha,B,Beta,2025-09-01 08:10:00.000,2025-09-01 08:40:00.000",
+        ",,B,Beta,2025-09-01 09:10:00.000,2025-09-01 09:40:00.000",
+    ]
+    with tempfile.TemporaryDirectory() as tmp:
+        path = Path(tmp) / "blank.csv"
+        path.write_text("\n".join(rows_blank) + "\n", encoding="utf-8")
+        kept = clean(scan_csv(path)).filter(has_real_id("start_station_id")).collect()
+    assert kept.height == 1, "the blank-ID trip should be dropped"
+
     print("Self-test passed: departures and arrivals are in the right hours, including the midnight trip.")
+    print("Self-test passed: trips with a blank station ID are dropped.")
 
 
 def main():

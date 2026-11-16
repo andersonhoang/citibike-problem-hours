@@ -9,13 +9,15 @@ from pathlib import Path        # handles file paths
 import polars as pl             # reads the large CSV files
 
 # Step 2: point at the folder with the raw CSV files.
-folder = Path(r"C:\Users\anderson\Documents\SUTD\2025-Aug-Sep-Oct-citibike-tripdata")
+from get_data import DATA_DIR as folder   # the raw-data folder, set in get_data.py (or local_settings.py)
 files = [p for p in folder.glob("*.csv") if "JC-" not in p.name]   # skip Jersey City files
 
 # Step 3: read only the two station columns, as text, and clean them.
 trips = (
     pl.concat([pl.scan_csv(p, infer_schema_length=0) for p in files])
     .select("start_station_id", "start_station_name", "started_at")
+    # A blank station ID is not a station: drop those rows before counting.
+    .filter(pl.col("start_station_id").is_not_null() & (pl.col("start_station_id").str.strip_chars() != ""))
     .with_columns(
         pl.col("start_station_id").str.replace(r"_(old)?$", ""),   # rule 1: remove trailing "_" or "_old"
         pl.col("start_station_name").str.strip_chars(),      # rule 2: remove spaces at the ends

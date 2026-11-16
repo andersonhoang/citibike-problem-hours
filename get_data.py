@@ -29,11 +29,15 @@ ZIP_URLS = [
     "https://s3.amazonaws.com/tripdata/202510-citibike-tripdata.zip",
 ]
 
-# Folder for the raw files. By default it is a folder called data_raw
-# next to this script. This folder is git-ignored and must never be committed or shared.
-# TO CHANGE THE FOLDER: replace the line below with your own path, keeping the r" " and the quotes, for example:
+# Folder for the raw files. By default it is a folder called data_raw next to this script.
+# This folder is git-ignored and must never be committed or shared.
+# To use another folder on your laptop, create a file called local_settings.py next to this script
+# (local_settings.py is git-ignored) with one line, for example:
 #   DATA_DIR = Path(r"C:\Users\yourname\Documents\SUTD\your-folder")
-DATA_DIR = Path(__file__).resolve().parent / "data_raw"
+try:
+    from local_settings import DATA_DIR
+except ImportError:
+    DATA_DIR = Path(__file__).resolve().parent / "data_raw"
 
 EXPECTED_COLUMNS = [
     "ride_id", "rideable_type", "started_at", "ended_at",
@@ -78,6 +82,12 @@ def check_columns(csv_path):
 def scan_csv(csv_path):
     """Open a CSV without loading it all into memory. Every column is read as text."""
     return pl.scan_csv(csv_path, infer_schema_length=0)
+
+
+def has_real_id(column):
+    """True where a station ID is present: not missing (null) and not only spaces.
+    A blank ID is not a station, so the project drops these rows before counting stations."""
+    return pl.col(column).is_not_null() & (pl.col(column).str.strip_chars() != "")
 
 
 def clean(lf):
@@ -135,10 +145,12 @@ def main():
     # Clean all files together and count the stations.
     all_trips = clean(pl.concat([scan_csv(p) for p in csv_files]))
     counts = all_trips.select(
-        pl.col("start_station_id").n_unique().alias("start_station_ids"),
-        pl.col("start_station_name").n_unique().alias("start_station_names"),
+        # Count distinct REAL IDs only. A blank ID is not a station.
+        pl.col("start_station_id").filter(has_real_id("start_station_id")).n_unique().alias("start_station_ids"),
+        pl.col("start_station_name").filter(has_real_id("start_station_id")).n_unique().alias("start_station_names"),
+        (~has_real_id("start_station_id")).sum().alias("trips_with_blank_start_id"),
     ).collect()
-    print(counts)
+    print(counts.to_dicts())
     print("Done.")
 
 
