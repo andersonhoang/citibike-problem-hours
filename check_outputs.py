@@ -96,6 +96,17 @@ def check_table():
     no_name = table.filter(is_blank("station_name")).height
     check("every row has a station name", no_name == 0, f"{no_name:,} rows without a name")
 
+    # The list of stations left out by the 35-day rule must be saved, and none of them may be in the table.
+    excluded_file = FOLDER / "data_processed" / "excluded_stations.csv"
+    if excluded_file.exists():
+        excluded = pl.read_csv(excluded_file, infer_schema_length=0)
+        overlap = set(excluded.get_column("station_id").to_list()) & set(table.get_column("station_id").unique().to_list())
+        check("excluded-stations list saved, with a reason, and none are in the table",
+              excluded.height > 0 and "reason" in excluded.columns and not overlap,
+              f"{excluded.height:,} excluded, {len(overlap)} overlap")
+    else:
+        check("excluded-stations list saved", False, str(excluded_file))
+
     totals = {
         "departures": table.get_column("departures").sum(),
         "arrivals": table.get_column("arrivals").sum(),

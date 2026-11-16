@@ -81,11 +81,47 @@ def pick_top_stations(trips):
     )
 
     # Exclude stations not active on every training day (renamed, added or removed).
-    # PROPOSED RULE: the team has not confirmed this test yet.
+    # Team rule, confirmed 16 Nov 2026.
     eligible = stats.filter(pl.col("days_present") == TRAINING_DAYS)
 
     # Keep the TOP_N stations with the most trips.
     return eligible.sort("trip_volume", descending=True).head(TOP_N).select("station_id")
+
+
+def excluded_stations(trips):
+    """List real stations seen in the study period that fail the rule 'active on all 35 training days', with the reason."""
+    events = (
+        pl.concat([
+            trips.select(pl.col("start_station_id").alias("station_id"), pl.col("started_at").dt.date().alias("day")),
+            trips.select(pl.col("end_station_id").alias("station_id"), pl.col("ended_at").dt.date().alias("day")),
+        ])
+        .filter(has_real_id("station_id"))
+        .filter(pl.col("day").is_between(STUDY_FIRST, STUDY_LAST))
+    )
+    # Training-week activity per station (0 days if the station only appears after 5 Oct).
+    in_training = pl.col("day") <= TRAIN_LAST
+    stats = events.group_by("station_id").agg(
+        pl.col("day").filter(in_training).n_unique().alias("training_days_active"),
+        pl.col("day").filter(in_training).len().alias("training_trip_volume"),
+    )
+    names = (
+        trips.group_by("start_station_id")
+        .agg(pl.col("start_station_name").first().alias("station_name"))
+        .rename({"start_station_id": "station_id"})
+    )
+    return (
+        stats.filter(pl.col("training_days_active") < TRAINING_DAYS)
+        .join(names, on="station_id", how="left")
+        .with_columns(
+            pl.concat_str([
+                pl.lit("active on "),
+                pl.col("training_days_active").cast(pl.Utf8),
+                pl.lit(f" of {TRAINING_DAYS} training days (1 Sep to 5 Oct)"),
+            ]).alias("reason")
+        )
+        .select("station_id", "station_name", "training_days_active", "training_trip_volume", "reason")
+        .sort("training_trip_volume", "station_id", descending=[True, False])
+    )
 
 
 def build_table(top, flows, trips):
@@ -213,6 +249,12 @@ def main():
     out_path = OUTPUT_DIR / "station_hour.csv"
     table.collect().write_csv(out_path)
     print(f"Saved: {out_path}")
+
+    # Save the stations left out by the 35-day rule, with the reason for each.
+    excluded = excluded_stations(trips).collect()
+    excluded_path = OUTPUT_DIR / "excluded_stations.csv"
+    excluded.write_csv(excluded_path)
+    print(f"Saved: {excluded_path} ({excluded.height:,} stations excluded)")
 
 
 if __name__ == "__main__":
