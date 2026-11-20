@@ -40,7 +40,7 @@ def check_syntax():
     problems = []
     for f in FILES:
         try:
-            compile(f.read_text(encoding="utf-8"), f.name, "exec")
+            compile(f.read_text(encoding="utf-8-sig"), f.name, "exec")
         except SyntaxError as err:
             problems.append(f"{f.name} line {err.lineno}: {err.msg}")
     report("Every .py file compiles", problems)
@@ -50,7 +50,7 @@ def check_windows_paths():
     """Windows paths must be raw strings, for example r"C:\\Users\\...". Without the r, \\U breaks the code."""
     problems = []
     for f in FILES:
-        for number, line in enumerate(f.read_text(encoding="utf-8").splitlines(), start=1):
+        for number, line in enumerate(f.read_text(encoding="utf-8-sig").splitlines(), start=1):
             if WINDOWS_PATH.search(line):
                 problems.append(f"{f.name} line {number}: Windows path without r prefix")
     report("Windows paths are raw strings", problems)
@@ -60,7 +60,7 @@ def check_blank_ids():
     """A file that groups by station ID must also remove blank IDs (the 16 Nov 2026 mistake)."""
     problems = []
     for f in FILES:
-        text = f.read_text(encoding="utf-8")
+        text = f.read_text(encoding="utf-8-sig")
         if "group_by(" in text and "station_id" in text and not BLANK_FILTER.search(text):
             problems.append(f"{f.name} groups by station_id but never removes blank IDs")
     report("Files that group by station ID also remove blank IDs", problems)
@@ -70,7 +70,7 @@ def check_collect_before_get_column():
     """On a lazy table, collect() must come before get_column(). Looks at the 8 lines above each call."""
     problems = []
     for f in FILES:
-        lines = f.read_text(encoding="utf-8").splitlines()
+        lines = f.read_text(encoding="utf-8-sig").splitlines()
         for number, line in enumerate(lines, start=1):
             if ".get_column(" in line:
                 before = lines[max(0, number - 9):number - 1]
@@ -94,7 +94,7 @@ def check_repo_safety():
         for path in listed.stdout.splitlines():
             if (path.lower().endswith((".zip", ".csv")) and not path.startswith("data_processed/")) or path.startswith("data_raw/"):
                 problems.append(f"raw-data file is tracked by git: {path}")
-            if path.startswith("data_processed/") and path != "data_processed/station_hour.csv":
+            if path.startswith("data_processed/") and path not in ("data_processed/station_hour.csv", "data_processed/excluded_stations.csv"):
                 problems.append(f"unexpected file tracked in data_processed/: {path}")
     for name in ["StatActionLog.txt", "HANDOFF.md"]:
         if git("check-ignore", "-q", name).returncode != 0:
