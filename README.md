@@ -37,7 +37,7 @@ Get-FileHash data_processed\station_hour.csv -Algorithm SHA256
 
 Expected: `fad529850ef096b3ee3d6a7bc414362b9cb5fadfd8cb1b0c145eaa2a12f04114`. A match means your table equals the team's, row for row. If it differs, compare the row count and totals: 403,200 rows, 4,337,394 arrivals, 4,376,848 departures.
 
-`git status` may show the two CSVs in `data_processed/` as modified after a rebuild. The content is identical; it is only Windows line-ending handling. Do not commit those.
+The CSVs in `data_processed/` are kept byte-for-byte as built (`.gitattributes` turns off Windows line-ending conversion for them), so the hash above is the same whether you hash the file right after cloning or after rebuilding it.
 
 ## Files
 
