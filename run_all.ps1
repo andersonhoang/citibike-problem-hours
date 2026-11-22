@@ -5,7 +5,10 @@ $ErrorActionPreference = "Stop"
 if (-not (Test-Path .venv)) { python -m venv .venv; .\.venv\Scripts\python -m pip install -r requirements.txt }
 $py = ".\.venv\Scripts\python"
 Write-Host "== Self-tests ==";              & $py -m src.splits; & $py -m src.metrics; & $py -m src.features; & $py -m src.models
-Write-Host "== 1 Weather snapshot ==";      & $py analysis/01_weather_snapshot.py
+# The weather snapshot is downloaded ONCE and then kept (its retrieval date is part of the provenance).
+# Delete data_processed\weather_hourly.csv only if you deliberately want a new snapshot.
+if (Test-Path data_processed\weather_hourly.csv) { Write-Host "== 1 Weather snapshot: kept existing file ==" }
+else { Write-Host "== 1 Weather snapshot =="; & $py analysis/01_weather_snapshot.py }
 Write-Host "== 2 Threshold ==";             & $py analysis/02_threshold.py
 Write-Host "== 3 Features ==";              & $py analysis/03_build_features.py
 Write-Host "== 4 EDA figures ==";           & $py analysis/04_eda.py

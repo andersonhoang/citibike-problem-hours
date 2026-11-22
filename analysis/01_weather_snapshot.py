@@ -22,10 +22,14 @@ PARAMS = {
     "latitude": 40.78,
     "longitude": -73.97,
     "start_date": "2025-08-25",
-    "end_date": "2025-10-26",
+    "end_date": "2025-10-27",         # one extra UTC day: 26 Oct 20:00-23:00 EDT falls on 27 Oct UTC
     "hourly": "temperature_2m,precipitation,wind_speed_10m",
-    "timezone": "America/New_York",   # same local clock as the Citi Bike timestamps
+    # Ask for UTC and convert below. With timezone=America/New_York the API returned a FIXED
+    # GMT-5 clock (utc_offset_seconds = -18000), but Sep-Oct 2025 is EDT (GMT-4), so every
+    # reading was labelled one hour too early relative to the Citi Bike timestamps.
+    "timezone": "GMT",
 }
+LOCAL_TZ = "America/New_York"   # same local clock (with daylight saving) as the Citi Bike timestamps
 
 
 def main():
@@ -36,12 +40,17 @@ def main():
 
     # Step 3: turn the hourly arrays into a table.
     h = body["hourly"]
+    assert body.get("utc_offset_seconds") == 0, "expected a UTC response"
+    utc = pd.to_datetime(h["time"]).tz_localize("UTC")
     wx = pd.DataFrame({
-        "hour_start": pd.to_datetime(h["time"]),
+        "hour_start": utc.tz_convert(LOCAL_TZ).tz_localize(None),   # New York local, DST-aware
         "temp_c": h["temperature_2m"],
         "precip_mm": h["precipitation"],
         "wind_kmh": h["wind_speed_10m"],
     })
+    # The UTC request covers whole UTC days; keep exactly 25 Aug 00:00 to 26 Oct 23:00 local.
+    # Extend end_date by one day so the last local evening hours (UTC next day) are included.
+    wx = wx[(wx.hour_start >= "2025-08-25 00:00") & (wx.hour_start <= "2025-10-26 23:00")].reset_index(drop=True)
 
     # Step 4: checks with known answers. 63 days x 24 hours = 1,512 rows; no gaps; no missing values.
     assert len(wx) == 63 * 24, len(wx)
@@ -58,6 +67,7 @@ def main():
         "full_request": resp.url,
         "retrieved_utc": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "response_metadata": meta,
+        "time_handling": f"requested in UTC, converted to {LOCAL_TZ} (EDT, UTC-4, throughout 25 Aug-26 Oct 2025), trimmed to 25 Aug 00:00-26 Oct 23:00 local",
         "licence": "Open-Meteo data, CC BY 4.0 (https://open-meteo.com/en/licence)",
         "rows": len(wx),
     }

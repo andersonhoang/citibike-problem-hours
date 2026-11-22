@@ -1,6 +1,6 @@
 {
   "best_baseline_pr_auc": 0.40789294615740257,
-  "best_model_pr_auc": 0.49879566497009903,
+  "best_model_pr_auc": 0.4908322289939081,
   "decision": "GO",
   "lasso_C": {
     "no_weather": 0.1,
