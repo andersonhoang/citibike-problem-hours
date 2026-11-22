@@ -10,8 +10,8 @@ The Citi Bike trip files are licensed. **Never commit, upload or share them** (n
 
 ## Set up
 
-1. Python 3.10 or newer (built and tested with 3.14).
-2. `pip install -r requirements.txt` (polars; tested with 2.1.0).
+1. Python 3.12.10 (the pinned team version; `setup_env.ps1` creates the environment).
+2. `pip install -r requirements.txt` (exact versions are pinned there, e.g. polars 1.44.2, pandas 3.1.1).
 3. Optional: if your raw files are not in `data_raw/` next to the scripts, create `local_settings.py` next to `get_data.py` with these two lines. Create it in an editor such as Notepad or VS Code. It is git-ignored.
 
 ```python

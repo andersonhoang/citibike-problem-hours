@@ -25,9 +25,12 @@ def at_budget(df: pd.DataFrame, score_col: str, y_col: str = "y", time_col: str 
     In every hour, planners look at the k station-hours with the highest score.
     precision = real problem hours among all alerts / all alerts
     recall    = real problem hours caught / all real problem hours
-    Ties are broken by row order after a stable sort (deterministic).
+    Ties are broken at random with a fixed seed (deterministic). Breaking them by row order would
+    favour stations that sort first by ID, which matters for the baselines (many tied scores).
     """
-    ranked = df.sort_values([time_col, score_col], ascending=[True, False], kind="mergesort")
+    tie = np.random.default_rng(42).random(len(df))
+    ranked = df.assign(_tie=tie).sort_values([time_col, score_col, "_tie"], ascending=[True, False, True],
+                                             kind="mergesort")
     ranked = ranked.assign(_rank=ranked.groupby(time_col).cumcount())
     alerts = ranked[ranked["_rank"] < k]
     caught = alerts[y_col].sum()

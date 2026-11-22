@@ -8,95 +8,95 @@
       "tuning": [
         {
           "C": 0.001,
-          "pr_auc_week5": 0.5139954851664666,
+          "pr_auc_week5": 0.5139957827063513,
           "nonzero_coefs": 4
         },
         {
           "C": 0.003,
-          "pr_auc_week5": 0.5217356991937285,
+          "pr_auc_week5": 0.5217367643365078,
           "nonzero_coefs": 11
         },
         {
           "C": 0.01,
-          "pr_auc_week5": 0.5286246069106154,
+          "pr_auc_week5": 0.5286257505348582,
           "nonzero_coefs": 23
         },
         {
           "C": 0.03,
-          "pr_auc_week5": 0.5324470537466047,
+          "pr_auc_week5": 0.5324467584664696,
           "nonzero_coefs": 33
         },
         {
           "C": 0.1,
-          "pr_auc_week5": 0.5330819706714425,
+          "pr_auc_week5": 0.5330823155973988,
           "nonzero_coefs": 41
         },
         {
           "C": 1.0,
-          "pr_auc_week5": 0.5329129634139914,
+          "pr_auc_week5": 0.5329140594923267,
           "nonzero_coefs": 43
         }
       ],
       "coefficients": [
         {
           "feature": "cat__hour_7",
-          "coef": 1.505183675326779
+          "coef": 1.5045815981165835
         },
         {
           "feature": "cat__hour_8",
-          "coef": 1.4852664854156314
+          "coef": 1.4846611317427119
         },
         {
           "feature": "cat__hour_4",
-          "coef": -1.0133528712233597
+          "coef": -1.0138168132258683
         },
         {
           "feature": "cat__hour_3",
-          "coef": -0.9929253330338491
+          "coef": -0.9933247554317862
         },
         {
           "feature": "cat__hour_9",
-          "coef": 0.9898085945263789
+          "coef": 0.9892648287760822
         },
         {
           "feature": "cat__hour_6",
-          "coef": 0.8510880251471494
+          "coef": 0.8505238213813268
         },
         {
           "feature": "num__absnet_samehour_7d",
-          "coef": 0.544987431959895
+          "coef": 0.5449817382475955
         },
         {
           "feature": "cat__hour_14",
-          "coef": -0.4530574235193337
+          "coef": -0.45325113955540514
         },
         {
           "feature": "cat__hour_15",
-          "coef": -0.42903602904337834
+          "coef": -0.4291540231004148
         },
         {
           "feature": "num__absnet_lag168",
-          "coef": 0.4279163950014401
+          "coef": 0.42791230357525034
         },
         {
           "feature": "num__hour_sin",
-          "coef": -0.4230170509632068
+          "coef": -0.4228143646306247
         },
         {
           "feature": "cat__hour_12",
-          "coef": -0.39557457412244834
+          "coef": -0.3959745304960525
         },
         {
           "feature": "num__hour_cos",
-          "coef": -0.3849556664293282
+          "coef": -0.3850665578199145
         },
         {
           "feature": "cat__hour_13",
-          "coef": -0.38198602692367983
+          "coef": -0.38230828761204355
         },
         {
           "feature": "num__is_weekend",
-          "coef": -0.3537467124520691
+          "coef": -0.35375717301052245
         }
       ],
       "nonzero": 42
@@ -106,95 +106,95 @@
       "tuning": [
         {
           "C": 0.001,
-          "pr_auc_week5": 0.5140068794730782,
+          "pr_auc_week5": 0.5139980985416097,
           "nonzero_coefs": 4
         },
         {
           "C": 0.003,
-          "pr_auc_week5": 0.5217921609658251,
+          "pr_auc_week5": 0.5217325658943237,
           "nonzero_coefs": 11
         },
         {
           "C": 0.01,
-          "pr_auc_week5": 0.5291090396131545,
+          "pr_auc_week5": 0.5290750597872822,
           "nonzero_coefs": 24
         },
         {
           "C": 0.03,
-          "pr_auc_week5": 0.5321025261919945,
-          "nonzero_coefs": 35
+          "pr_auc_week5": 0.5319814521458065,
+          "nonzero_coefs": 36
         },
         {
           "C": 0.1,
-          "pr_auc_week5": 0.5320413959875989,
+          "pr_auc_week5": 0.531829873609754,
           "nonzero_coefs": 44
         },
         {
           "C": 1.0,
-          "pr_auc_week5": 0.5316035698589835,
+          "pr_auc_week5": 0.5312538883819513,
           "nonzero_coefs": 47
         }
       ],
       "coefficients": [
         {
-          "feature": "cat__hour_7",
-          "coef": 1.2129780609271381
+          "feature": "cat__hour_8",
+          "coef": 1.2153864462412136
         },
         {
-          "feature": "cat__hour_8",
-          "coef": 1.2001286740762827
+          "feature": "cat__hour_7",
+          "coef": 1.2011326664962887
         },
         {
           "feature": "cat__hour_9",
-          "coef": 0.7179042161429644
+          "coef": 0.7326077375573093
         },
         {
           "feature": "num__absnet_samehour_7d",
-          "coef": 0.5631641563745983
+          "coef": 0.5619160451442078
         },
         {
           "feature": "cat__hour_6",
-          "coef": 0.4636499641352715
+          "coef": 0.4534342065194462
         },
         {
           "feature": "num__absnet_lag168",
-          "coef": 0.4343461603523176
+          "coef": 0.4350305391626699
         },
         {
           "feature": "num__is_weekend",
-          "coef": -0.3739001199209185
-        },
-        {
-          "feature": "cat__hour_12",
-          "coef": -0.349499417381114
-        },
-        {
-          "feature": "num__hour_cos",
-          "coef": -0.34139579526347613
+          "coef": -0.37807519229946696
         },
         {
           "feature": "cat__hour_14",
-          "coef": -0.33782803922533483
+          "coef": -0.3578209872615058
+        },
+        {
+          "feature": "cat__hour_12",
+          "coef": -0.3549613304569957
         },
         {
           "feature": "num__hour_sin",
-          "coef": -0.33779469244756716
+          "coef": -0.34558611276972384
+        },
+        {
+          "feature": "num__hour_cos",
+          "coef": -0.3424209628886149
         },
         {
           "feature": "cat__hour_17",
-          "coef": 0.3237666114110959
+          "coef": 0.31372917495579483
         },
         {
           "feature": "cat__hour_18",
-          "coef": 0.3125301883771187
-        },
-        {
-          "feature": "cat__hour_13",
-          "coef": -0.30721604942438124
+          "coef": 0.31201413253040094
         },
         {
           "feature": "cat__hour_15",
-          "coef": -0.3044976160287979
+          "coef": -0.3101629147602828
+        },
+        {
+          "feature": "cat__hour_13",
+          "coef": -0.3096136754038871
         }
       ],
       "nonzero": 38
@@ -217,16 +217,16 @@
     },
     "weather": {
       "importance_top10": {
-        "absnet_samehour_7d": 0.1234,
-        "net_samehour_7d": 0.0832,
-        "absnet_lag168": 0.0772,
-        "absnet_lag24": 0.0617,
-        "net_lag168": 0.0589,
-        "net_lag24": 0.0528,
+        "absnet_samehour_7d": 0.1293,
+        "absnet_lag168": 0.0831,
+        "net_samehour_7d": 0.0772,
+        "absnet_lag24": 0.0602,
+        "net_lag168": 0.057,
+        "net_lag24": 0.0519,
         "activity_6h": 0.0448,
-        "net_lag48": 0.0386,
-        "absnet_lag48": 0.0357,
-        "wind_kmh_lag3": 0.0351
+        "net_lag48": 0.0369,
+        "wind_kmh_lag3": 0.0355,
+        "absnet_lag48": 0.0353
       }
     }
   }
