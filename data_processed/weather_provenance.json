@@ -4,19 +4,19 @@
     "latitude": 40.78,
     "longitude": -73.97,
     "start_date": "2025-08-25",
-    "end_date": "2025-10-27",
+    "end_date": "2025-10-26",
     "hourly": "temperature_2m,precipitation,wind_speed_10m",
-    "timezone": "GMT"
+    "timezone": "America/New_York"
   },
-  "full_request": "https://archive-api.open-meteo.com/v1/archive?latitude=40.78&longitude=-73.97&start_date=2025-08-25&end_date=2025-10-27&hourly=temperature_2m%2Cprecipitation%2Cwind_speed_10m&timezone=GMT",
-  "retrieved_utc": "2026-11-22T07:41:43+00:00",
+  "full_request": "https://archive-api.open-meteo.com/v1/archive?latitude=40.78&longitude=-73.97&start_date=2025-08-25&end_date=2025-10-26&hourly=temperature_2m%2Cprecipitation%2Cwind_speed_10m&timezone=America%2FNew_York",
+  "retrieved_utc": "2026-11-22T05:24:21+00:00",
   "response_metadata": {
     "latitude": 40.808434,
     "longitude": -74.0199,
-    "generationtime_ms": 0.1252889633178711,
-    "utc_offset_seconds": 0,
-    "timezone": "GMT",
-    "timezone_abbreviation": "GMT",
+    "generationtime_ms": 0.12063980102539062,
+    "utc_offset_seconds": -18000,
+    "timezone": "America/New_York",
+    "timezone_abbreviation": "GMT-5",
     "elevation": 40.0,
     "hourly_units": {
       "time": "iso8601",
@@ -25,7 +25,6 @@
       "wind_speed_10m": "km/h"
     }
   },
-  "time_handling": "requested in UTC, converted to America/New_York (EDT, UTC-4, throughout 25 Aug-26 Oct 2025), trimmed to 25 Aug 00:00-26 Oct 23:00 local",
   "licence": "Open-Meteo data, CC BY 4.0 (https://open-meteo.com/en/licence)",
   "rows": 1512
 }
