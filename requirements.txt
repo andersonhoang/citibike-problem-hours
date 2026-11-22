@@ -1,3 +1,13 @@
-polars>=2.1.0
-pandas>=3.1.1
-requests>=2.34.2
+# Pinned Python 3.14.4 environment (42.510 Citi Bike Problem Hours)
+# Verify after installing:  python analysis/00_check_env.py
+polars==2.1.0
+pandas==3.1.1
+numpy==2.5.5
+scipy==1.18.1
+scikit-learn==1.9.1
+matplotlib==3.11.2
+seaborn==0.13.2
+pyarrow==26.0.1
+requests==2.34.2
+ipykernel==7.4.0
+nbconvert==7.17.2
