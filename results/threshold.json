@@ -1,0 +1,31 @@
+{
+  "rule": "problem hour = 1 if |net_flow| >= threshold",
+  "computed_on": "training weeks only: 2025-09-01 to 2025-10-05 (src/config.py)",
+  "n_training_station_hours": 252000,
+  "n_stations": 300,
+  "abs_net_flow_mean": 4.2355,
+  "net_flow_sd": 7.2323,
+  "computed_date": "2026-11-22",
+  "q0.95": {
+    "threshold": 15.0,
+    "train_problem_hours": 12966,
+    "train_problem_rate": 0.051452,
+    "train_hours_exactly_at_threshold": 1720
+  },
+  "q0.97": {
+    "threshold": 18.0,
+    "train_problem_hours": 8540,
+    "train_problem_rate": 0.033889,
+    "train_hours_exactly_at_threshold": 1050
+  },
+  "q0.90": {
+    "threshold": 10.0,
+    "train_problem_hours": 28929,
+    "train_problem_rate": 0.114798,
+    "train_hours_exactly_at_threshold": 4597
+  },
+  "main_problem_hours_by_direction": {
+    "filling (net_flow >= +threshold)": 6422,
+    "emptying (net_flow <= -threshold)": 6544
+  }
+}
