@@ -50,6 +50,9 @@ The CSVs in `data_processed/` are kept byte-for-byte as built (`.gitattributes` 
 | `check_stations.py` | Diagnostic: names and IDs that do not match across months |
 | `data_processed/station_hour.csv` | The table: 403,200 rows |
 | `data_processed/excluded_stations.csv` | 341 stations left out by the 35-day rule, with the reason |
+| `analysis/01_weather_snapshot.py` | Downloads the hourly NYC weather once (Open-Meteo, CC BY 4.0), in UTC, converted to New York time |
+| `data_processed/weather_hourly.csv` | Weather snapshot: 1,512 hours, 25 Aug to 26 Oct 2025 (temperature, precipitation, wind) |
+| `data_processed/weather_provenance.json` | Query, parameters, retrieval time and response metadata of the snapshot |
 
 ## Data facts (verified on a fresh download, 20 Nov 2026)
 
