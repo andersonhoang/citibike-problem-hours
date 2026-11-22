@@ -73,7 +73,7 @@ def list_trip_csvs():
 
 def check_columns(csv_path):
     """Stop with an error if any of the 13 expected columns is missing."""
-    header = pl.read_csv(csv_path, n_rows=0).columns   # read only the header row
+    header = pl.read_csv(csv_path, n_rows=0, infer_schema_length=0).columns   # read only the header row as text
     missing = [c for c in EXPECTED_COLUMNS if c not in header]
     if missing:
         raise ValueError(f"{csv_path.name} is missing columns: {missing}")

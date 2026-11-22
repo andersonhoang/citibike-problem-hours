@@ -1,0 +1,17 @@
+{
+  "threshold": 15.0,
+  "train_problem_rate": 0.05145238095238095,
+  "peak_cell": {
+    "weekday": 1,
+    "hour": 8,
+    "share": 0.33466666666666667
+  },
+  "group_rates": {
+    "low": 3.813,
+    "mid": 4.575,
+    "high": 7.048
+  },
+  "net_flow_sd": 7.232254838905436,
+  "min_daily_departures": 51777,
+  "max_daily_departures": 96108
+}
