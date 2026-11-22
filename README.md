@@ -51,6 +51,36 @@ The CSVs in `data_processed/` are kept byte-for-byte as built (`.gitattributes` 
 | `data_processed/station_hour.csv` | The table: 403,200 rows |
 | `data_processed/excluded_stations.csv` | 341 stations left out by the 35-day rule, with the reason |
 
+## Modelling pipeline (added 22 Nov 2026)
+
+Run everything in order with `.\run_all.ps1`, or step by step:
+
+```
+python -m src.splits                         # split dates + holiday flags (self-test)
+python -m src.metrics                        # metric functions (self-test with hand answers)
+python -m src.features                       # leakage test for the lag features
+python -m src.models                         # baseline and lasso self-tests
+python analysis/01_weather_snapshot.py       # Open-Meteo hourly weather + provenance (CC BY 4.0)
+python analysis/02_threshold.py              # 5% (and 3%, 10%) thresholds from training weeks only
+python analysis/03_build_features.py         # modelling table data_processed/features.parquet
+python analysis/04_eda.py                    # figures 1-4 (training weeks only)
+python analysis/05_validate_week6.py         # baselines, lasso, random forest on week 6 + checkpoint
+python analysis/07_bootstrap_errors_figures.py valid   # bootstrap CIs, error analysis, figures 5-7
+python analysis/06_run_test_once.py          # ONLY after the freeze (needs FREEZE.md); runs once
+python analysis/07_bootstrap_errors_figures.py test    # after the test run
+```
+
+| Folder | Contents |
+|---|---|
+| `src/` | reusable functions: config, splits, metrics, features, models, pipeline |
+| `analysis/` | numbered scripts, run in order |
+| `results/` | metric tables, predictions, threshold, checkpoint decision |
+| `figures/` | every figure, regenerated from code |
+| `report/`, `slides/`, `presentation/` | report draft, slide deck, presenter guide and defence Q&A |
+| `docs/` | the Notion task list mapped to files |
+
+Python 3.12 (tested); package versions in `requirements.txt`. The raw Citi Bike data is never redistributed. Weather data: Open-Meteo, CC BY 4.0.
+
 ## Data facts (verified on a fresh download, 20 Nov 2026)
 
 | File | Size | Trips |
