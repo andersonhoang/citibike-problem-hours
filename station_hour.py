@@ -12,17 +12,17 @@ Then build the table:     python station_hour.py
 
 # Step 1: import the tools we need.
 import sys                                          # reads the command-line word "test"
-from datetime import date, datetime                 # calendar dates and date-times
+from datetime import datetime, timedelta           # date-times and time steps
 from pathlib import Path                            # file paths
 import polars as pl                                 # table library
 from get_data import DATA_DIR, clean, has_real_id, list_trip_csvs, scan_csv   # reuse the functions from get_data.py
+from src.config import TEST, TRAIN                  # the one place for the study dates
 
-# Step 2: settings.
-TRAIN_FIRST = date(2025, 9, 1)     # training weeks 1 to 5
-TRAIN_LAST = date(2025, 10, 5)
-TRAINING_DAYS = 35                 # 1 Sep to 5 Oct, inclusive
-STUDY_FIRST = date(2025, 9, 1)     # the 56-day study period
-STUDY_LAST = date(2025, 10, 26)
+# Step 2: settings. The dates come from src/config.py, so they cannot drift apart.
+TRAIN_FIRST, TRAIN_LAST = TRAIN                     # training weeks 1 to 5 (1 Sep to 5 Oct 2025)
+TRAINING_DAYS = (TRAIN_LAST - TRAIN_FIRST).days + 1                 # 35 days, inclusive
+STUDY_FIRST, STUDY_LAST = TRAIN_FIRST, TEST[1]      # the study period, 1 Sep to 26 Oct 2025
+STUDY_DAYS = (STUDY_LAST - STUDY_FIRST).days + 1                    # 56 days, inclusive
 TOP_N = 300                        # number of busiest stations
 OUTPUT_DIR = Path(__file__).resolve().parent / "data_processed"
 
@@ -116,7 +116,8 @@ def excluded_stations(trips):
             pl.concat_str([
                 pl.lit("active on "),
                 pl.col("training_days_active").cast(pl.Utf8),
-                pl.lit(f" of {TRAINING_DAYS} training days (1 Sep to 5 Oct)"),
+                pl.lit(f" of {TRAINING_DAYS} training days "
+                       f"({TRAIN_FIRST.day} {TRAIN_FIRST:%b} to {TRAIN_LAST.day} {TRAIN_LAST:%b})"),
             ]).alias("reason")
         )
         .select("station_id", "station_name", "training_days_active", "training_trip_volume", "reason")
@@ -128,7 +129,10 @@ def build_table(top, flows, trips):
     """Make one row for every chosen station and every hour in the study period, then add the counts."""
     # All hours from 1 Sep 00:00 to 26 Oct 23:00 (56 days x 24 hours = 1,344 hours).
     hours = (
-        pl.datetime_range(datetime(2025, 9, 1, 0), datetime(2025, 10, 26, 23), interval="1h", eager=True)
+        pl.datetime_range(
+            datetime.combine(STUDY_FIRST, datetime.min.time()),                              # 00:00 on the first day
+            datetime.combine(STUDY_LAST, datetime.min.time()) + timedelta(hours=23),         # 23:00 on the last day
+            interval="1h", eager=True)
         .cast(pl.Datetime("us"))
         .alias("hour_start")
         .to_frame()
@@ -163,7 +167,7 @@ def check_table(table, top, trips):
     """Stop with an error if the table is not the right size, or its arrivals do not match the raw trips."""
     # Check 1: 300 stations x 24 hours x 56 days = 403,200 rows.
     rows = table.select(pl.len()).collect().item()
-    expected = TOP_N * 24 * 56
+    expected = TOP_N * 24 * STUDY_DAYS
     assert rows == expected, f"expected {expected:,} rows, got {rows:,}"
 
     # Check 2: total arrivals in the table = trips ending at the chosen stations in the study period.
