@@ -13,11 +13,25 @@ import subprocess                           # runs git
 import sys                                  # sets the exit code
 from pathlib import Path                    # file paths
 
-# Step 2: settings. Every .py file in this folder is checked, except this one.
+# Step 2: settings. Every .py file in the repo is checked for syntax and Windows paths, except this one.
+# The two polars rules (blank IDs, collect before get_column) apply only to the scripts in the root folder,
+# because those are the ones that read the raw trips.
 FOLDER = Path(__file__).resolve().parent
 THIS_FILE = Path(__file__).name
-FILES = sorted(p for p in FOLDER.glob("*.py") if p.name != THIS_FILE)
+SKIP_DIRS = {".venv", "venv", "__pycache__", "data_raw", ".git", "node_modules"}
+ALL_FILES = sorted(
+    p for p in FOLDER.rglob("*.py")
+    if p.name != THIS_FILE and not (set(p.relative_to(FOLDER).parts) & SKIP_DIRS)
+)
+FILES = [p for p in ALL_FILES if p.parent == FOLDER]     # root scripts only
 FAILED = []                                 # names of checks that failed
+
+# What git may track. Aggregated outputs are allowed; raw trips and zips never.
+ALLOWED_EXTENSIONS = {
+    "data_processed/": {".csv", ".json", ".parquet"},
+    "results/": {".csv", ".json", ".parquet", ".txt"},
+}
+MAX_TRACKED_MB = 50                         # raw monthly CSV parts are about 186 MB; GitHub refuses over 100 MB
 
 # Patterns used by the checks.
 WINDOWS_PATH = re.compile(r'(?<![rR])"[A-Za-z]:\\')                  # a Windows path with no r prefix
@@ -38,21 +52,23 @@ def report(name, problems):
 def check_syntax():
     """Every file must compile (no syntax errors)."""
     problems = []
-    for f in FILES:
+    for f in ALL_FILES:
+        name = f.relative_to(FOLDER).as_posix()
         try:
-            compile(f.read_text(encoding="utf-8-sig"), f.name, "exec")
+            compile(f.read_text(encoding="utf-8-sig"), name, "exec")
         except SyntaxError as err:
-            problems.append(f"{f.name} line {err.lineno}: {err.msg}")
+            problems.append(f"{name} line {err.lineno}: {err.msg}")
     report("Every .py file compiles", problems)
 
 
 def check_windows_paths():
     """Windows paths must be raw strings, for example r"C:\\Users\\...". Without the r, \\U breaks the code."""
     problems = []
-    for f in FILES:
+    for f in ALL_FILES:
+        name = f.relative_to(FOLDER).as_posix()
         for number, line in enumerate(f.read_text(encoding="utf-8-sig").splitlines(), start=1):
             if WINDOWS_PATH.search(line):
-                problems.append(f"{f.name} line {number}: Windows path without r prefix")
+                problems.append(f"{name} line {number}: Windows path without r prefix")
     report("Windows paths are raw strings", problems)
 
 
@@ -92,10 +108,26 @@ def check_repo_safety():
         problems.append("git ls-files failed: " + listed.stderr.strip())
     else:
         for path in listed.stdout.splitlines():
-            if (path.lower().endswith((".zip", ".csv")) and not path.startswith("data_processed/")) or path.startswith("data_raw/"):
+            lower = path.lower()
+            suffix = Path(lower).suffix
+            full = FOLDER / path
+            # Raw data: zips anywhere, anything in data_raw/, or a CSV outside the two output folders.
+            if lower.endswith(".zip") or path.startswith("data_raw/"):
                 problems.append(f"raw-data file is tracked by git: {path}")
-            if path.startswith("data_processed/") and path not in ("data_processed/station_hour.csv", "data_processed/excluded_stations.csv"):
-                problems.append(f"unexpected file tracked in data_processed/: {path}")
+            elif suffix == ".csv" and not path.startswith(tuple(ALLOWED_EXTENSIONS)):
+                problems.append(f"CSV tracked outside data_processed/ and results/: {path}")
+            # Output folders: only aggregated file types.
+            for folder, allowed in ALLOWED_EXTENSIONS.items():
+                if path.startswith(folder) and suffix not in allowed:
+                    problems.append(f"file type {suffix or '(none)'} not allowed in {folder}: {path}")
+            # Content guard: a tracked CSV whose header looks like raw Citi Bike trips.
+            if suffix == ".csv" and full.exists():
+                with open(full, encoding="utf-8-sig", errors="replace") as handle:
+                    if "ride_id" in handle.readline():
+                        problems.append(f"CSV looks like raw trip data (header has ride_id): {path}")
+            # Size guard.
+            if full.exists() and full.stat().st_size > MAX_TRACKED_MB * 1024 * 1024:
+                problems.append(f"file over {MAX_TRACKED_MB} MB is tracked: {path}")
     for name in ["StatActionLog.txt", "HANDOFF.md"]:
         if git("check-ignore", "-q", name).returncode != 0:
             problems.append(f"{name} is not git-ignored")
