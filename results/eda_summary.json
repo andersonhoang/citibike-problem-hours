@@ -1,0 +1,58 @@
+{
+  "computed_on": "training weeks only: 2025-09-01 to 2025-10-05",
+  "threshold": 15.0,
+  "training_station_hours": 252000,
+  "fig1_problem_share_pct": 5.145,
+  "fig1_net_flow_min_max": [
+    -134,
+    96
+  ],
+  "fig2_peak_share_pct": {
+    "Weekday": {
+      "hour": 8,
+      "share": 29.54
+    },
+    "Weekend or holiday": {
+      "hour": 19,
+      "share": 4.45
+    }
+  },
+  "fig2_overnight_share_pct_0_to_5h": {
+    "Weekday": 0.19,
+    "Weekend or holiday": 0.39
+  },
+  "fig3_groups": {
+    "Low demand": {
+      "stations": 100,
+      "trips_range": [
+        12950,
+        15714
+      ],
+      "problem_share_pct": 3.81
+    },
+    "Medium demand": {
+      "stations": 100,
+      "trips_range": [
+        15751,
+        20097
+      ],
+      "problem_share_pct": 4.58
+    },
+    "High demand": {
+      "stations": 100,
+      "trips_range": [
+        20130,
+        44507
+      ],
+      "problem_share_pct": 7.05
+    }
+  },
+  "fig4_zero_trip_station_hours_per_day": {
+    "of_total_per_day": 7200,
+    "min": 223,
+    "max": 777,
+    "mean": 517.2,
+    "max_day": "2025-09-07",
+    "labor_day": 487
+  }
+}
